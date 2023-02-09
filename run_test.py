@@ -45,14 +45,14 @@ def main(args, debug=False):
     os.environ["CUDA_VISIBLE_DEVICES"] = '{}'.format(args.gpu_id)
 
     print(args)
-    device = torch.device('cpu')
+    device = torch.device('gpu')
     # get the P2PNet
     model = build_model(args)
     # move to GPU
     model.to(device)
     # load trained model
     if args.weight_path is not None:
-        checkpoint = torch.load(args.weight_path, map_location='cpu')
+        checkpoint = torch.load(args.weight_path, map_location=device)
         model.load_state_dict(checkpoint['model'])
     # convert to eval mode
     model.eval()

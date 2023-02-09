@@ -42,10 +42,8 @@ def get_args_parser():
 
 
 def main(args, debug=False):
-    os.environ["CUDA_VISIBLE_DEVICES"] = '{}'.format(args.gpu_id)
 
-    print(args)
-    device = torch.device('gpu')
+    device = torch.device('cpu')
     # get the P2PNet
     model = build_model(args)
     # move to GPU
@@ -63,16 +61,19 @@ def main(args, debug=False):
     ])
 
     # set your image path here
-    img_path = "./vis/drone.jpg"
+    img_path = "./vis/image.jpg"
     # load the images
     img_raw = Image.open(img_path).convert('RGB')
     # round the size
     width, height = img_raw.size
+    print(width, height)
     new_width = width // 128 * 128
     new_height = height // 128 * 128
     img_raw = img_raw.resize((new_width, new_height), Image.ANTIALIAS)
     # pre-processing
     img = transform(img_raw)
+
+    print(img.shape)
 
     samples = torch.Tensor(img).unsqueeze(0)
     samples = samples.to(device)
@@ -94,6 +95,7 @@ def main(args, debug=False):
     size = 2
     img_to_draw = cv2.cvtColor(np.array(img_raw), cv2.COLOR_RGB2BGR)
     for p in points:
+        # print(p)
         img_to_draw = cv2.circle(img_to_draw, (int(p[0]), int(p[1])), size, (0, 0, 255), -1)
     # save the visualized image
     cv2.imwrite(os.path.join(args.output_dir, 'pred{}.jpg'.format(predict_cnt)), img_to_draw)

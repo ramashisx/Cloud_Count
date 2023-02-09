@@ -15,11 +15,13 @@ from engine import *
 from models import build_model
 import os
 import warnings
+
 warnings.filterwarnings('ignore')
+
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set parameters for P2PNet evaluation', add_help=False)
-    
+
     # * Backbone
     parser.add_argument('--backbone', default='vgg16_bn', type=str,
                         help="name of the convolutional backbone to use")
@@ -38,12 +40,12 @@ def get_args_parser():
 
     return parser
 
-def main(args, debug=False):
 
+def main(args, debug=False):
     os.environ["CUDA_VISIBLE_DEVICES"] = '{}'.format(args.gpu_id)
 
     print(args)
-    device = torch.device('cuda')
+    device = torch.device('cpu')
     # get the P2PNet
     model = build_model(args)
     # move to GPU
@@ -56,12 +58,12 @@ def main(args, debug=False):
     model.eval()
     # create the pre-processing transform
     transform = standard_transforms.Compose([
-        standard_transforms.ToTensor(), 
+        standard_transforms.ToTensor(),
         standard_transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
     # set your image path here
-    img_path = "./vis/demo1.jpg"
+    img_path = "./vis/drone.jpg"
     # load the images
     img_raw = Image.open(img_path).convert('RGB')
     # round the size
@@ -69,7 +71,7 @@ def main(args, debug=False):
     new_width = width // 128 * 128
     new_height = height // 128 * 128
     img_raw = img_raw.resize((new_width, new_height), Image.ANTIALIAS)
-    # pre-proccessing
+    # pre-processing
     img = transform(img_raw)
 
     samples = torch.Tensor(img).unsqueeze(0)
@@ -95,6 +97,7 @@ def main(args, debug=False):
         img_to_draw = cv2.circle(img_to_draw, (int(p[0]), int(p[1])), size, (0, 0, 255), -1)
     # save the visualized image
     cv2.imwrite(os.path.join(args.output_dir, 'pred{}.jpg'.format(predict_cnt)), img_to_draw)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('P2PNet evaluation script', parents=[get_args_parser()])
